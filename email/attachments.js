@@ -39,7 +39,7 @@ async function handleListAttachments(args) {
       $select: 'id,name,contentType,size,isInline',
     };
 
-    console.error(`Fetching attachments for message: ${messageId}`);
+    console.log(`Fetching attachments for message: ${messageId}`);
     const response = await callGraphAPI(
       accessToken,
       'GET',
@@ -134,7 +134,7 @@ async function handleDownloadAttachment(args) {
 
     // First, get attachment metadata to get the filename and content
     const metadataEndpoint = `/me/messages/${messageId}/attachments/${attachmentId}`;
-    console.error(`Fetching attachment metadata: ${attachmentId}`);
+    console.log(`Fetching attachment metadata: ${attachmentId}`);
 
     const metadata = await callGraphAPI(
       accessToken,
@@ -278,7 +278,7 @@ async function handleGetAttachmentContent(args) {
     const accessToken = await ensureAuthenticated();
 
     const endpoint = `/me/messages/${messageId}/attachments/${attachmentId}`;
-    console.error(`Fetching attachment content: ${attachmentId}`);
+    console.log(`Fetching attachment content: ${attachmentId}`);
 
     const response = await callGraphAPI(accessToken, 'GET', endpoint, null, {});
 

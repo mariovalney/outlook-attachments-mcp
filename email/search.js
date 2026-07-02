@@ -64,10 +64,10 @@ async function handleSearchEmails(args) {
     let endpoint;
     if (searchAllFolders) {
       endpoint = 'me/messages';
-      console.error('Searching across all mail folders');
+      console.log('Searching across all mail folders');
     } else {
       endpoint = await resolveFolderPath(accessToken, folder);
-      console.error(`Using endpoint: ${endpoint} for folder: ${folder}`);
+      console.log(`Using endpoint: ${endpoint} for folder: ${folder}`);
     }
 
     // Execute progressive search with pagination
@@ -154,7 +154,7 @@ async function progressiveSearch(
         kqlForSearch = `"${trimmedKql}"`;
       }
 
-      console.error(`Attempting raw KQL search: ${kqlForSearch}`);
+      console.log(`Attempting raw KQL search: ${kqlForSearch}`);
       searchAttempts.push('raw-kql');
 
       const kqlParams = {
@@ -170,7 +170,7 @@ async function progressiveSearch(
         kqlParams,
         maxCount
       );
-      console.error(
+      console.log(
         `Raw KQL search complete: ${response.value?.length || 0} results`
       );
       const matched = response.value?.length || 0;
@@ -220,7 +220,7 @@ async function progressiveSearch(
     (filterTerms.hasAttachments === true || filterTerms.unreadOnly === true)
   ) {
     // Skip directly to boolean-only filter (step 3) — combined search is redundant
-    console.error('Only boolean filters provided, skipping combined search');
+    console.log('Only boolean filters provided, skipping combined search');
   } else {
     try {
       const params = buildSearchParams(
@@ -229,7 +229,7 @@ async function progressiveSearch(
         Math.min(50, maxCount),
         selectFields
       );
-      console.error('Attempting combined search with params:', params);
+      console.log('Attempting combined search with params:', params);
       searchAttempts.push('combined-search');
 
       const response = await callGraphAPIPaginated(
@@ -240,7 +240,7 @@ async function progressiveSearch(
         maxCount
       );
       if (response.value && response.value.length > 0) {
-        console.error(
+        console.log(
           `Combined search successful: found ${response.value.length} results`
         );
         response._searchInfo = {
@@ -262,7 +262,7 @@ async function progressiveSearch(
   for (const term of searchPriority) {
     if (searchTerms[term]) {
       try {
-        console.error(
+        console.log(
           `Attempting search with only ${term}: "${searchTerms[term]}"`
         );
         searchAttempts.push(`single-term-${term}`);
@@ -299,7 +299,7 @@ async function progressiveSearch(
           maxCount
         );
         if (response.value && response.value.length > 0) {
-          console.error(
+          console.log(
             `Search with ${term} successful: found ${response.value.length} results`
           );
           response._searchInfo = {
@@ -314,7 +314,7 @@ async function progressiveSearch(
         // Client-side fallback for 'to' filter — toRecipients/any() lambda
         // returns 0 results on personal accounts even when emails exist
         if (term === 'to') {
-          console.error(
+          console.log(
             'to filter returned 0 results, trying client-side filtering'
           );
           searchAttempts.push('client-side-to');
@@ -325,7 +325,7 @@ async function progressiveSearch(
           );
           const matched = filterToClientSide(messages, searchTerms[term]);
           if (matched.length > 0) {
-            console.error(
+            console.log(
               `Client-side to filter matched ${matched.length} of ${messages.length} messages`
             );
             return { value: matched.slice(0, maxCount) };
@@ -334,7 +334,7 @@ async function progressiveSearch(
 
         // Client-side fallback for 'query' — search bodyPreview, subject, from
         if (term === 'query') {
-          console.error(
+          console.log(
             'query contains(subject) returned 0 results, trying client-side body search'
           );
           searchAttempts.push('client-side-query');
@@ -345,7 +345,7 @@ async function progressiveSearch(
           );
           const matched = filterQueryClientSide(messages, searchTerms[term]);
           if (matched.length > 0) {
-            console.error(
+            console.log(
               `Client-side query matched ${matched.length} of ${messages.length} messages`
             );
             return { value: matched.slice(0, maxCount) };
@@ -357,7 +357,7 @@ async function progressiveSearch(
         // Client-side fallback for 'to' when API throws (e.g. InefficientFilter)
         if (term === 'to') {
           try {
-            console.error(
+            console.log(
               'to filter threw error, trying client-side filtering'
             );
             searchAttempts.push('client-side-to');
@@ -368,7 +368,7 @@ async function progressiveSearch(
             );
             const matched = filterToClientSide(messages, searchTerms[term]);
             if (matched.length > 0) {
-              console.error(
+              console.log(
                 `Client-side to filter matched ${matched.length} of ${messages.length} messages`
               );
               return { value: matched.slice(0, maxCount) };
@@ -383,7 +383,7 @@ async function progressiveSearch(
         // Client-side fallback for 'query' when API throws
         if (term === 'query') {
           try {
-            console.error(
+            console.log(
               'query filter threw error, trying client-side body search'
             );
             searchAttempts.push('client-side-query');
@@ -394,7 +394,7 @@ async function progressiveSearch(
             );
             const matched = filterQueryClientSide(messages, searchTerms[term]);
             if (matched.length > 0) {
-              console.error(
+              console.log(
                 `Client-side query matched ${matched.length} of ${messages.length} messages`
               );
               return { value: matched.slice(0, maxCount) };
@@ -416,7 +416,7 @@ async function progressiveSearch(
     filterTerms.receivedAfter || filterTerms.receivedBefore;
   if (hasBooleanFilters || hasDateFilters) {
     try {
-      console.error('Attempting search with only boolean/date filters');
+      console.log('Attempting search with only boolean/date filters');
       searchAttempts.push('boolean-filters-only');
 
       const filterOnlyParams = {
@@ -439,7 +439,7 @@ async function progressiveSearch(
         filterOnlyParams,
         maxCount
       );
-      console.error(
+      console.log(
         `Boolean filter search found ${response.value?.length || 0} results`
       );
       response._searchInfo = {
@@ -454,7 +454,7 @@ async function progressiveSearch(
       // Retry without $orderby if it was the issue
       if (error.message && error.message.includes('InefficientFilter')) {
         try {
-          console.error('Retrying boolean filters without $orderby');
+          console.log('Retrying boolean filters without $orderby');
           const retryParams = {
             $top: Math.min(50, maxCount),
             $select: selectFields,
@@ -494,7 +494,7 @@ async function progressiveSearch(
     searchTerms.kqlQuery;
 
   if (hasAnyFilters) {
-    console.error(
+    console.log(
       'All search strategies exhausted with filters active — returning 0 results'
     );
     searchAttempts.push('no-results');
@@ -511,7 +511,7 @@ async function progressiveSearch(
   }
 
   // No search filters specified — return recent emails (list mode)
-  console.error('No search filters specified, returning recent emails');
+  console.log('No search filters specified, returning recent emails');
   searchAttempts.push('recent-emails');
 
   const basicParams = {
@@ -527,7 +527,7 @@ async function progressiveSearch(
     basicParams,
     maxCount
   );
-  console.error(`Recent emails: found ${response.value?.length || 0} results`);
+  console.log(`Recent emails: found ${response.value?.length || 0} results`);
 
   response._searchInfo = {
     attemptsCount: searchAttempts.length,
@@ -936,7 +936,7 @@ async function handleSearchByMessageId(args) {
       $top: '10', // Usually only one match, but allow for edge cases
     };
 
-    console.error(`Searching for Message-ID: ${messageId}`);
+    console.log(`Searching for Message-ID: ${messageId}`);
 
     const response = await callGraphAPI(
       accessToken,

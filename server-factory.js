@@ -56,11 +56,11 @@ function createServer(TOOLS) {
   server.fallbackRequestHandler = async (request) => {
     try {
       const { method, params, id } = request;
-      console.error(`REQUEST: ${method} [${id}]`);
+      console.log(`REQUEST: ${method} [${id}]`);
 
       // Initialize handler
       if (method === 'initialize') {
-        console.error(`INITIALIZE REQUEST: ID [${id}]`);
+        console.log(`INITIALIZE REQUEST: ID [${id}]`);
         return {
           protocolVersion: '2024-11-05',
           capabilities: {
@@ -78,8 +78,8 @@ function createServer(TOOLS) {
 
       // Tools list handler
       if (method === 'tools/list') {
-        console.error(`TOOLS LIST REQUEST: ID [${id}]`);
-        console.error(`TOOLS COUNT: ${TOOLS.length}`);
+        console.log(`TOOLS LIST REQUEST: ID [${id}]`);
+        console.log(`TOOLS COUNT: ${TOOLS.length}`);
 
         return {
           tools: TOOLS.map((tool) => ({
@@ -100,7 +100,7 @@ function createServer(TOOLS) {
         try {
           const { name, arguments: args = {} } = params || {};
 
-          console.error(`TOOL CALL: ${name}`);
+          console.log(`TOOL CALL: ${name}`);
 
           // Find the tool handler
           const tool = TOOLS.find((t) => t.name === name);
