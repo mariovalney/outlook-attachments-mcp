@@ -13,7 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Stateless, per-user authentication: the bearer sent on every MCP request is the caller's own Microsoft Graph access token, bound to that request's context (`auth/request-context.js`) — no server-side token storage.
 - Streamable HTTP MCP transport (`http-server.js`) with in-memory session handling and a public `GET /healthz` for platform health checks.
 - 21 Outlook tools across email, calendar, contacts, categories, folders, rules, mailbox settings, and (work/school) shared mailboxes / meeting rooms, backed by the Microsoft Graph API.
-- `Dockerfile` and `docker-compose.yml` for cloud-agnostic deployment.
+- `Dockerfile` for cloud-agnostic deployment.
 - `USE_TEST_MODE` for exercising the full tool surface against mock data without a real Microsoft account.
 
 ### Changed from upstream

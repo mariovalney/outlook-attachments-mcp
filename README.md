@@ -51,8 +51,6 @@ docker run -d --name outlook-mcp -p 3000:3000 \
   outlook-attachments-mcp
 ```
 
-Or with Compose: copy `.env.example` to `.env`, fill it in, and run `docker compose up -d`.
-
 **On any cloud container platform**: point it at this repository (it builds the `Dockerfile`), set the environment variables below, expose port `3000`, and put HTTPS in front (most platforms do this automatically). The container is stateless — no volumes needed — and `GET /healthz` is available for health checks.
 
 | Variable | Required | Description |
