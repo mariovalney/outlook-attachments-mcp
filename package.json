@@ -1,0 +1,42 @@
+{
+  "name": "outlook-attachments-mcp",
+  "version": "1.0.0",
+  "description": "Multi-user remote MCP server for Microsoft Outlook (email, attachments, calendar, contacts) — OAuth with Microsoft Entra ID, deployable anywhere with a Dockerfile",
+  "main": "http-server.js",
+  "scripts": {
+    "start": "node http-server.js",
+    "test-mode": "USE_TEST_MODE=true node http-server.js",
+    "check": "node --check http-server.js && node --check server-factory.js && node --check oauth/index.js && node --check auth/index.js && node --check auth/request-context.js"
+  },
+  "keywords": [
+    "claude",
+    "outlook",
+    "mcp",
+    "microsoft-graph",
+    "email",
+    "attachments",
+    "calendar",
+    "contacts",
+    "model-context-protocol",
+    "remote-mcp",
+    "docker",
+    "anthropic"
+  ],
+  "author": "Mario Valney <mariovalney@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mariovalney/outlook-attachments-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mariovalney/outlook-attachments-mcp/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "dotenv": "^17.3.1",
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}

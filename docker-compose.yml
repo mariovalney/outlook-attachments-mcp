@@ -1,0 +1,20 @@
+services:
+  outlook-mcp:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      # Public HTTPS URL of this server (behind your reverse proxy / platform)
+      BASE_URL: ${BASE_URL:?Set BASE_URL to the public URL of the server}
+      # Entra ID app registration (see README)
+      OUTLOOK_CLIENT_ID: ${OUTLOOK_CLIENT_ID:?Set OUTLOOK_CLIENT_ID}
+      OUTLOOK_CLIENT_SECRET: ${OUTLOOK_CLIENT_SECRET:-}
+      OUTLOOK_AUTH_AUDIENCE: ${OUTLOOK_AUTH_AUDIENCE:-common}
+      # Fixed random secret used to sign the OAuth state
+      STATE_SECRET: ${STATE_SECRET:?Set STATE_SECRET to a long random string}
+      # Optional hardening / behaviour
+      OAUTH_ALLOWED_REDIRECT_HOSTS: ${OAUTH_ALLOWED_REDIRECT_HOSTS:-}
+      OUTLOOK_MAX_EMAILS_PER_SESSION: ${OUTLOOK_MAX_EMAILS_PER_SESSION:-}
+      OUTLOOK_ALLOWED_RECIPIENTS: ${OUTLOOK_ALLOWED_RECIPIENTS:-}
+      OUTLOOK_DEFAULT_TIMEZONE: ${OUTLOOK_DEFAULT_TIMEZONE:-}
+    restart: unless-stopped
