@@ -9,6 +9,7 @@
  *   *    /.well-known/...  — OAuth discovery metadata
  *   GET  /authorize, /callback, POST /register, /token — OAuth proxy to Entra ID
  *   POST/GET/DELETE /mcp   — MCP endpoint (requires a Graph bearer token)
+ *   GET  /attachments/download/:token — one-time, short-lived attachment download
  *
  * Every MCP request carries the calling user's own Microsoft Graph access
  * token as the OAuth bearer; the token is bound to the request context so
@@ -28,6 +29,7 @@ const config = require('./config');
 const { buildTools, createServer } = require('./server-factory');
 const { runWithAccessToken } = require('./auth/request-context');
 const { oauthRouter, requireGraphBearer } = require('./oauth');
+const attachmentCache = require('./utils/attachment-cache');
 
 const HTTP = config.HTTP_CONFIG;
 
@@ -128,6 +130,30 @@ app.get('/healthz', (_req, res) => {
   });
 });
 
+// Public by design — the token itself is the credential (256 bits of
+// randomness, 5-minute TTL, in-memory only). Lets the `attachments` tool's
+// `download` action hand back a plain link instead of an MCP resource
+// content block, since real MCP clients disagree on which binary
+// mimeTypes they'll accept there. See utils/attachment-cache.js.
+app.get('/attachments/download/:token', (req, res) => {
+  const entry = attachmentCache.get(req.params.token);
+  if (!entry) {
+    res
+      .status(404)
+      .send(
+        'This download link has expired or was already used. Ask the assistant to fetch the attachment again.'
+      );
+    return;
+  }
+  res.set('Content-Type', entry.mimeType);
+  const asciiFallback = entry.filename.replace(/[^\x20-\x7e]/g, '_');
+  res.set(
+    'Content-Disposition',
+    `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(entry.filename)}`
+  );
+  res.send(entry.buffer);
+});
+
 app.use(oauthRouter());
 
 app.post('/mcp', requireGraphBearer, (req, res, next) => {
@@ -151,6 +177,9 @@ app.use((error, _req, res, _next) => {
     });
   }
 });
+
+// Bounds memory from download links that were generated but never fetched.
+setInterval(() => attachmentCache.pruneExpired(), 60_000).unref();
 
 const httpServer = app.listen(HTTP.port, '0.0.0.0', () => {
   console.log(

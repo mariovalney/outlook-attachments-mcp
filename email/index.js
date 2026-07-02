@@ -455,7 +455,7 @@ const emailTools = [
   {
     name: 'attachments',
     description:
-      'Inspect or retrieve email attachments. action=`list` (default) returns metadata for all attachments on `messageId` (id, name, contentType, size, isInline). action=`view` returns inline content for text/JSON/XML attachments via `attachmentId`; binary types require download. action=`download` returns the attachment as an embedded resource (base64) in the tool response, up to 20 MB — the client is responsible for saving/rendering it. `messageId` is required for all actions; `attachmentId` is required for view/download. Use `outputVerbosity` to control list field count.',
+      'Inspect or retrieve email attachments. action=`list` (default) returns metadata for all attachments on `messageId` (id, name, contentType, size, isInline). action=`view` returns inline content for text/JSON/XML attachments via `attachmentId`; binary types require download. action=`download` returns a short-lived HTTPS download link (valid ~5 minutes, up to 20 MB) that serves the file directly — open it to get the actual attachment. `messageId` is required for all actions; `attachmentId` is required for view/download.',
     annotations: {
       title: 'Attachments',
       readOnlyHint: true,
