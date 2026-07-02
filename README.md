@@ -4,7 +4,7 @@ A **multi-user remote MCP server** for Microsoft Outlook / Microsoft 365. Add it
 
 Runs anywhere a Dockerfile runs: any cloud platform or PaaS that builds container images, or plain `docker run` on your own server.
 
-Based on the excellent [outlook-assistant](https://github.com/littlebearapps/outlook-assistant) by Little Bear Apps (MIT), with inspiration from [Claude-MCP-Read-Email-Attachments](https://github.com/Zacccck/Claude-MCP-Read-Email-Attachments). This fork turns the original local stdio server into a cloud-ready, multi-user remote MCP server.
+Based on the excellent [outlook-assistant](https://github.com/littlebearapps/outlook-assistant) by Little Bear Apps (MIT), with inspiration from [Claude-MCP-Read-Email-Attachments](https://github.com/Zacccck/Claude-MCP-Read-Email-Attachments). This fork replaces the original's local, single-user stdio server and device-code login with a cloud-ready, multi-user remote MCP server authenticated via OAuth.
 
 ## How it works
 
@@ -82,19 +82,6 @@ Or with Compose: copy `.env.example` to `.env`, fill it in, and run `docker comp
 | Folders & rules | `folders`, `manage-rules` |
 | Settings | `mailbox-settings` |
 | Advanced (work/school) | `access-shared-mailbox`, `find-meeting-rooms` |
-
-See [`llms.txt`](llms.txt) for detailed tool documentation (from the upstream project).
-
-## Local stdio mode
-
-The original single-user stdio mode still works for Claude Desktop / Claude Code with device-code login:
-
-```bash
-npm install
-node index.js   # or: npm run start:stdio
-```
-
-Configure it in your MCP client with `OUTLOOK_CLIENT_ID` (see [`README.upstream.md`](README.upstream.md) for the original instructions, including the `auth` tool device-code flow).
 
 ## Endpoints
 

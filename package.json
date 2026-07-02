@@ -3,15 +3,10 @@
   "version": "1.0.0",
   "description": "Multi-user remote MCP server for Microsoft Outlook (email, attachments, calendar, contacts) — OAuth with Microsoft Entra ID, deployable anywhere with a Dockerfile",
   "main": "http-server.js",
-  "bin": {
-    "outlook-attachments-mcp": "./index.js"
-  },
   "scripts": {
     "start": "node http-server.js",
-    "start:stdio": "node index.js",
     "test-mode": "USE_TEST_MODE=true node http-server.js",
-    "inspect": "npx @modelcontextprotocol/inspector node index.js",
-    "check": "node --check http-server.js && node --check index.js && node --check server-factory.js && node --check oauth/index.js && node --check auth/request-context.js"
+    "check": "node --check http-server.js && node --check server-factory.js && node --check oauth/index.js && node --check auth/index.js && node --check auth/request-context.js"
   },
   "keywords": [
     "claude",

@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev --ignore-scripts
 
-COPY http-server.js index.js server-factory.js config.js outlook-auth-server.js ./
+COPY http-server.js server-factory.js config.js ./
 COPY auth/ auth/
 COPY oauth/ oauth/
 COPY calendar/ calendar/

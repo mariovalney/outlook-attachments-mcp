@@ -1,11 +1,8 @@
 /**
- * Configuration for Outlook Assistant Server
+ * Configuration for Outlook Attachments MCP Server
  *
  * Token-efficient configuration with field presets and response limits.
  */
-const path = require('path');
-const os = require('os');
-
 // Import new utility modules
 const {
   FIELD_PRESETS,
@@ -14,14 +11,6 @@ const {
   getFolderFields,
 } = require('./utils/field-presets');
 const { VERBOSITY, DEFAULT_LIMITS } = require('./utils/response-formatter');
-
-// Ensure we have a home directory path — never fall back to /tmp (world-readable)
-const homeDir = process.env.HOME || process.env.USERPROFILE || os.homedir();
-if (!homeDir) {
-  throw new Error(
-    'Cannot determine home directory. Set HOME or USERPROFILE environment variable.'
-  );
-}
 
 /**
  * Resolve the OAuth audience segment used in Microsoft Graph endpoints.
@@ -77,7 +66,6 @@ module.exports = {
   AUTH_CONFIG: {
     clientId: process.env.OUTLOOK_CLIENT_ID || '',
     clientSecret: process.env.OUTLOOK_CLIENT_SECRET || '',
-    redirectUri: 'http://localhost:3333/auth/callback',
     scopes: [
       'offline_access',
       'User.Read',
@@ -94,13 +82,9 @@ module.exports = {
       // 'Mail.Read.Shared',   // access-shared-mailbox tool
       // 'Place.Read.All',     // find-meeting-rooms tool
     ],
-    tokenStorePath: path.join(homeDir, '.outlook-assistant-tokens.json'),
-    authServerUrl: 'http://localhost:3333',
     audience: AUTH_AUDIENCE,
-    deviceCodeEndpoint: `https://login.microsoftonline.com/${AUTH_AUDIENCE}/oauth2/v2.0/devicecode`,
     tokenEndpoint: `https://login.microsoftonline.com/${AUTH_AUDIENCE}/oauth2/v2.0/token`,
     authorizeEndpoint: `https://login.microsoftonline.com/${AUTH_AUDIENCE}/oauth2/v2.0/authorize`,
-    defaultAuthMethod: process.env.OUTLOOK_AUTH_METHOD || 'device-code',
   },
 
   // HTTP (multi-user, remote MCP) mode configuration — see http-server.js

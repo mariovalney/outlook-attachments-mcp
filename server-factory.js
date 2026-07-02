@@ -1,18 +1,13 @@
 /**
- * MCP Server factory — shared between the stdio entry point (index.js)
- * and the HTTP entry point (http-server.js).
+ * MCP Server factory — used by the HTTP entry point (http-server.js).
  *
- * Builds the tool list and a configured Server instance. The HTTP mode
- * omits the device-code `auth` tool: authentication there happens at the
- * connector level (OAuth with Microsoft), so every request already carries
- * the user's Graph token.
+ * Builds the tool list and a configured Server instance.
  */
 const { Server } = require('@modelcontextprotocol/sdk/server/index.js');
 const config = require('./config');
 const { coerceArgsAgainstSchema } = require('./utils/schema-coerce');
 
 // Import module tools
-const { authTools, setToolCount } = require('./auth');
 const { calendarTools } = require('./calendar');
 const { emailTools } = require('./email');
 const { folderTools } = require('./folder');
@@ -24,14 +19,10 @@ const { advancedTools } = require('./advanced');
 
 /**
  * Builds the combined tool list.
- * @param {object} options
- * @param {boolean} options.includeAuthTools - Include the device-code `auth`
- *   tool (stdio/single-user mode only).
  * @returns {Array} tools
  */
-function buildTools({ includeAuthTools = true } = {}) {
-  const tools = [
-    ...(includeAuthTools ? authTools : []),
+function buildTools() {
+  return [
     ...calendarTools,
     ...emailTools,
     ...folderTools,
@@ -41,11 +32,6 @@ function buildTools({ includeAuthTools = true } = {}) {
     ...settingsTools,
     ...advancedTools,
   ];
-
-  // Set dynamic tool count for auth about handler
-  setToolCount(tools.length);
-
-  return tools;
 }
 
 /**

@@ -57,9 +57,7 @@ if (!HTTP.stateSecret) {
 
 // --- MCP wiring ------------------------------------------------------------
 
-// The device-code `auth` tool is omitted: in HTTP mode authentication happens
-// at the connector level (OAuth with Microsoft) before requests arrive here.
-const TOOLS = buildTools({ includeAuthTools: false });
+const TOOLS = buildTools();
 
 // Active Streamable HTTP sessions (in-memory; use sticky sessions if scaling
 // horizontally).

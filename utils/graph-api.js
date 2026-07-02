@@ -334,9 +334,10 @@ async function callGraphAPIRaw(accessToken, emailId) {
 }
 
 /**
- * Calls Graph API with automatic auth and 401 retry.
- * Gets token via ensureAuthenticated(), and if a 401 occurs,
- * refreshes the token and retries once.
+ * Calls Graph API using the current request's access token.
+ * The token belongs to the remote user and is refreshed by the MCP client
+ * (via the OAuth /token proxy) — a 401 here is simply rethrown so the
+ * client can refresh and retry.
  * @param {string} method - HTTP method
  * @param {string} path - API endpoint path
  * @param {object} data - Request body
@@ -352,48 +353,10 @@ async function callGraphAPIWithAuth(
   extraHeaders = {}
 ) {
   // Lazy require to avoid circular dependency
-  const { ensureAuthenticated, tokenStorage } = require('../auth');
-  const { getRequestAccessToken } = require('../auth/request-context');
+  const { ensureAuthenticated } = require('../auth');
 
   const accessToken = await ensureAuthenticated();
-  try {
-    return await callGraphAPI(
-      accessToken,
-      method,
-      path,
-      data,
-      queryParams,
-      extraHeaders
-    );
-  } catch (error) {
-    // In HTTP mode the token belongs to the remote user and is refreshed by
-    // the MCP client (via the /token proxy) — rethrow so the client retries.
-    if (getRequestAccessToken()) {
-      throw error;
-    }
-    if (error.message === 'UNAUTHORIZED' && tokenStorage) {
-      console.error('[GRAPH-API] 401 received, attempting token refresh...');
-      try {
-        const newToken = await tokenStorage.refreshAccessToken();
-        if (newToken) {
-          return await callGraphAPI(
-            newToken,
-            method,
-            path,
-            data,
-            queryParams,
-            extraHeaders
-          );
-        }
-      } catch (refreshError) {
-        console.error(
-          '[GRAPH-API] Token refresh failed:',
-          refreshError.message
-        );
-      }
-    }
-    throw error;
-  }
+  return callGraphAPI(accessToken, method, path, data, queryParams, extraHeaders);
 }
 
 module.exports = {

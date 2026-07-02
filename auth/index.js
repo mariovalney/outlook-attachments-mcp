@@ -1,52 +1,27 @@
 /**
- * Authentication module for Outlook Assistant server
+ * Authentication module for the Outlook Attachments MCP server.
+ *
+ * This server is HTTP-only and multi-user: every MCP request carries the
+ * calling user's own Microsoft Graph access token as the OAuth bearer (see
+ * oauth/index.js and http-server.js). ensureAuthenticated() simply resolves
+ * that per-request token — there is no server-side token storage or
+ * device-code flow.
  */
-const tokenManager = require('./token-manager');
-const TokenStorage = require('./token-storage');
-const config = require('../config');
-const { authTools, setToolCount } = require('./tools');
 const { getRequestAccessToken } = require('./request-context');
 
-// Singleton TokenStorage instance with auto-refresh support
-const tokenStorage = new TokenStorage({
-  clientId: config.AUTH_CONFIG.clientId,
-  clientSecret: config.AUTH_CONFIG.clientSecret,
-  tokenStorePath: config.AUTH_CONFIG.tokenStorePath,
-  scopes: config.AUTH_CONFIG.scopes,
-  tokenEndpoint: config.AUTH_CONFIG.tokenEndpoint,
-});
-
 /**
- * Ensures the user is authenticated and returns an access token.
- * Automatically refreshes expired tokens via tokenStorage.
- * @param {boolean} forceNew - Whether to force a new authentication
+ * Returns the Graph access token bound to the current request.
  * @returns {Promise<string>} - Access token
- * @throws {Error} - If authentication fails
+ * @throws {Error} - If called outside a request context (no bearer bound)
  */
-async function ensureAuthenticated(forceNew = false) {
-  // HTTP (multi-user) mode: the bearer token of the current request is the
-  // caller's own Graph access token. Takes precedence over the local store.
+async function ensureAuthenticated() {
   const requestToken = getRequestAccessToken();
-  if (requestToken) {
-    return requestToken;
-  }
-
-  if (forceNew) {
+  if (!requestToken) {
     throw new Error('Authentication required');
   }
-
-  const accessToken = await tokenStorage.getValidAccessToken();
-  if (!accessToken) {
-    throw new Error('Authentication required');
-  }
-
-  return accessToken;
+  return requestToken;
 }
 
 module.exports = {
-  tokenManager, // deprecated: use tokenStorage
-  tokenStorage,
-  authTools,
-  setToolCount,
   ensureAuthenticated,
 };
