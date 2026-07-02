@@ -3,17 +3,25 @@
  * Provides tools to list and download email attachments via Microsoft Graph API
  */
 const _https = require('https'); // Reserved for future use
-const _config = require('../config'); // Reserved for future use
+const config = require('../config');
 const { callGraphAPI } = require('../utils/graph-api');
 const { ensureAuthenticated } = require('../auth');
+const attachmentCache = require('../utils/attachment-cache');
 
 // This is a remote, multi-user MCP server: the process handling a tool call
 // runs in its own container, entirely separate from the filesystem of
 // whatever MCP client is calling it (e.g. Claude's own sandbox). Writing
 // attachment bytes to local disk here — as the original single-user stdio
 // server did — would save the file somewhere the client can never read.
-// Binary attachments must instead travel back as part of the MCP response
-// itself, as a base64-encoded embedded resource.
+//
+// Embedding the bytes directly in the MCP response (as a base64 `resource`
+// content block) was tried first, but real clients disagree on which
+// mimeTypes they accept there — one rejected a .docx with "Resources of
+// type '...' are not currently supported", another failed the whole
+// tools/call result validation outright. A plain HTTPS download link,
+// served by this same process from a short-lived in-memory cache, sidesteps
+// that entirely: the response is just text, and the file travels over an
+// ordinary HTTP GET instead of the MCP content protocol.
 const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024; // 20 MB decoded
 
 /**
@@ -188,20 +196,23 @@ async function handleDownloadAttachment(args) {
       }
 
       const sizeKB = (sizeBytes / 1024).toFixed(1);
+      const buffer = Buffer.from(contentBytes, 'base64');
+      const { token, expiresAt } = attachmentCache.put(
+        buffer,
+        filename,
+        contentType
+      );
+      const downloadUrl = `${config.HTTP_CONFIG.baseUrl}/attachments/download/${token}`;
+      const expiresInMin = Math.max(
+        1,
+        Math.round((expiresAt - Date.now()) / 60000)
+      );
 
       return {
         content: [
           {
             type: 'text',
-            text: `Downloaded attachment:\n\nFilename: ${filename}\nType: ${contentType}\nSize: ${sizeKB} KB`,
-          },
-          {
-            type: 'resource',
-            resource: {
-              uri: `attachment://${messageId}/${attachmentId}/${encodeURIComponent(filename)}`,
-              mimeType: contentType,
-              blob: contentBytes,
-            },
+            text: `Downloaded attachment:\n\nFilename: ${filename}\nType: ${contentType}\nSize: ${sizeKB} KB\n\nDownload link (valid ~${expiresInMin} min): ${downloadUrl}`,
           },
         ],
       };
