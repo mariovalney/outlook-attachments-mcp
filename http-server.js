@@ -141,10 +141,10 @@ app.use((error, _req, res, _next) => {
 });
 
 const httpServer = app.listen(HTTP.port, '0.0.0.0', () => {
-  console.error(
+  console.log(
     `${config.SERVER_NAME} v${config.SERVER_VERSION} listening on :${HTTP.port} (MCP endpoint: ${HTTP.baseUrl}/mcp)`
   );
-  console.error(`Test mode is ${config.USE_TEST_MODE ? 'enabled' : 'disabled'}`);
+  console.log(`Test mode is ${config.USE_TEST_MODE ? 'enabled' : 'disabled'}`);
   if (
     !process.env.OUTLOOK_MAX_EMAILS_PER_SESSION &&
     !process.env.OUTLOOK_ALLOWED_RECIPIENTS &&
@@ -157,7 +157,7 @@ const httpServer = app.listen(HTTP.port, '0.0.0.0', () => {
 });
 
 function shutdown(signal) {
-  console.error(`${signal} received, shutting down`);
+  console.log(`${signal} received, shutting down`);
   for (const transport of transports.values()) {
     try {
       transport.close();
