@@ -1,5 +1,9 @@
 # Outlook Attachments MCP
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js >= 18.18.0](https://img.shields.io/badge/node-%3E%3D18.18.0-brightgreen.svg)](package.json)
+[![Docker](https://img.shields.io/badge/deploy-docker-2496ED.svg?logo=docker&logoColor=white)](Dockerfile)
+
 A **multi-user remote MCP server** for Microsoft Outlook / Microsoft 365. Add it to Claude (claude.ai) as a custom connector, sign in with your Microsoft account, and let Claude work with your email, attachments, calendar, contacts, folders, rules, and mailbox settings — 21 tools backed by the Microsoft Graph API.
 
 Runs anywhere a Dockerfile runs: any cloud platform or PaaS that builds container images, or plain `docker run` on your own server.
@@ -99,6 +103,18 @@ Or with Compose: copy `.env.example` to `.env`, fill it in, and run `docker comp
 - MCP sessions are kept in memory — when scaling to multiple replicas, use sticky sessions.
 - Shared mailboxes and meeting rooms require work/school accounts and extra Graph scopes (see `config.js`).
 - Attachments are listed/downloaded via Graph; there is no server-side document parsing (PDF/OCR etc.).
+
+## Contributing
+
+Bug reports, feature requests, and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, the test-mode workflow (no Azure account needed), and how to submit a change.
+
+## Security
+
+Found a vulnerability? Please **don't** open a public issue — see [SECURITY.md](SECURITY.md) for how to report it privately, and for the security-relevant design notes (token pass-through, `STATE_SECRET`, redirect allowlisting).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

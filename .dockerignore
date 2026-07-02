@@ -6,6 +6,6 @@ npm-debug.log
 Dockerfile
 docker-compose.yml
 README.md
-README.upstream.md
-llms.txt
-llms-install.md
+CONTRIBUTING.md
+SECURITY.md
+CHANGELOG.md
