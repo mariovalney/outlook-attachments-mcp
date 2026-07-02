@@ -60,7 +60,7 @@ async function resolveFolderPath(accessToken, folderName) {
   // Check if it's a well-known folder (case-insensitive)
   const lowerFolderName = folderName.toLowerCase();
   if (WELL_KNOWN_FOLDERS[lowerFolderName]) {
-    console.error(`Using well-known folder path for "${folderName}"`);
+    console.log(`Using well-known folder path for "${folderName}"`);
     return WELL_KNOWN_FOLDERS[lowerFolderName];
   }
 
@@ -69,7 +69,7 @@ async function resolveFolderPath(accessToken, folderName) {
     const folderId = await getFolderIdByName(accessToken, folderName);
     if (folderId) {
       const path = `me/mailFolders/${folderId}/messages`;
-      console.error(`Resolved folder "${folderName}" to path: ${path}`);
+      console.log(`Resolved folder "${folderName}" to path: ${path}`);
       return path;
     }
 
@@ -97,7 +97,7 @@ async function resolveFolderPath(accessToken, folderName) {
 async function getFolderIdByName(accessToken, folderName) {
   try {
     // First try with exact match filter
-    console.error(`Looking for folder with name "${folderName}"`);
+    console.log(`Looking for folder with name "${folderName}"`);
     const response = await callGraphAPI(
       accessToken,
       'GET',
@@ -107,14 +107,14 @@ async function getFolderIdByName(accessToken, folderName) {
     );
 
     if (response.value && response.value.length > 0) {
-      console.error(
+      console.log(
         `Found folder "${folderName}" with ID: ${response.value[0].id}`
       );
       return response.value[0].id;
     }
 
     // If exact match fails, try to get all folders and do a case-insensitive comparison
-    console.error(
+    console.log(
       `No exact match found for "${folderName}", trying case-insensitive search`
     );
     const allFoldersResponse = await callGraphAPI(
@@ -132,14 +132,14 @@ async function getFolderIdByName(accessToken, folderName) {
       );
 
       if (matchingFolder) {
-        console.error(
+        console.log(
           `Found case-insensitive match for "${folderName}" with ID: ${matchingFolder.id}`
         );
         return matchingFolder.id;
       }
     }
 
-    console.error(`No folder found matching "${folderName}"`);
+    console.log(`No folder found matching "${folderName}"`);
     return null;
   } catch (error) {
     console.error(`Error finding folder "${folderName}": ${error.message}`);

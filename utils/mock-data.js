@@ -11,7 +11,7 @@
  * @returns {object} - Simulated API response
  */
 function simulateGraphAPIResponse(method, path, _data, _queryParams) {
-  console.error(`Simulating response for: ${method} ${path}`);
+  console.log(`Simulating response for: ${method} ${path}`);
 
   if (method === 'GET') {
     if (path.includes('messages') && !path.includes('sendMail')) {
