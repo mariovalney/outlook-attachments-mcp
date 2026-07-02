@@ -478,15 +478,6 @@ const emailTools = [
           type: 'string',
           description: 'Attachment ID (action=view/download, required)',
         },
-        outputDir: {
-          type: 'string',
-          description:
-            'DEPRECATED, ignored. download now returns the file inline as an embedded resource instead of saving it to disk. Kept accepted (not rejected) so clients with a cached older schema keep working until they refresh.',
-        },
-        savePath: {
-          type: 'string',
-          description: 'DEPRECATED, ignored. See `outputDir`.',
-        },
       },
       additionalProperties: false,
       required: ['messageId'],
