@@ -18,6 +18,7 @@ require('dotenv').config();
 
 const { randomUUID } = require('crypto');
 const express = require('express');
+const cors = require('cors');
 const {
   StreamableHTTPServerTransport,
 } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
@@ -104,6 +105,17 @@ async function handleMcpRequest(req, res) {
 
 const app = express();
 app.set('trust proxy', true);
+// Browser-based MCP clients (e.g. claude.ai custom connectors) call this
+// server directly via fetch(); without CORS the browser blocks both the
+// requests and, critically, reading the Mcp-Session-Id response header
+// needed to keep the MCP session alive across calls. No cookies are used
+// for auth (bearer tokens only), so a permissive origin is safe here.
+app.use(
+  cors({
+    origin: '*',
+    exposedHeaders: ['Mcp-Session-Id', 'WWW-Authenticate'],
+  })
+);
 app.use(express.json({ limit: '4mb' }));
 app.use(express.urlencoded({ extended: false }));
 
