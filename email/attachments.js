@@ -3,12 +3,18 @@
  * Provides tools to list and download email attachments via Microsoft Graph API
  */
 const _https = require('https'); // Reserved for future use
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
 const _config = require('../config'); // Reserved for future use
 const { callGraphAPI } = require('../utils/graph-api');
 const { ensureAuthenticated } = require('../auth');
+
+// This is a remote, multi-user MCP server: the process handling a tool call
+// runs in its own container, entirely separate from the filesystem of
+// whatever MCP client is calling it (e.g. Claude's own sandbox). Writing
+// attachment bytes to local disk here — as the original single-user stdio
+// server did — would save the file somewhere the client can never read.
+// Binary attachments must instead travel back as part of the MCP response
+// itself, as a base64-encoded embedded resource.
+const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024; // 20 MB decoded
 
 /**
  * List attachments for a specific email
@@ -103,20 +109,15 @@ async function handleListAttachments(args) {
 }
 
 /**
- * Download a specific attachment
+ * Download a specific attachment — returns its content as an embedded MCP
+ * resource (base64 blob) so the calling client can save or render it.
  * @param {object} args - Tool arguments
  * @param {string} args.messageId - The ID of the email message
  * @param {string} args.attachmentId - The ID of the attachment
- * @param {string} args.savePath - Optional path to save the file (defaults to current directory)
- * @returns {object} - MCP response with download result
+ * @returns {object} - MCP response with the attachment as an embedded resource
  */
 async function handleDownloadAttachment(args) {
-  // F-19: accept both `outputDir` (canonical) and `savePath` (legacy
-  // alias). Previously the silent-ignore-unknown-param behaviour
-  // dropped `outputDir` and fell through to cwd, polluting the source
-  // tree with downloaded files.
   const { messageId, attachmentId } = args;
-  const savePath = args.outputDir || args.savePath;
 
   if (!messageId || !attachmentId) {
     return {
@@ -173,25 +174,34 @@ async function handleDownloadAttachment(args) {
         };
       }
 
-      // Determine save location. F-19: default to os.tmpdir() instead
-      // of cwd so attachments don't silently land in the source tree
-      // when the caller forgets to pass outputDir. Auto-create the
-      // target directory.
-      const outputDir = savePath || os.tmpdir();
-      fs.mkdirSync(outputDir, { recursive: true });
-      const outputPath = path.join(outputDir, filename);
+      const sizeBytes = Math.ceil((contentBytes.length * 3) / 4);
+      if (sizeBytes > MAX_ATTACHMENT_BYTES) {
+        const maxMB = (MAX_ATTACHMENT_BYTES / (1024 * 1024)).toFixed(0);
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `Attachment "${filename}" is too large to return (${(sizeBytes / (1024 * 1024)).toFixed(1)} MB, limit ${maxMB} MB). Download it directly from Outlook instead.`,
+            },
+          ],
+        };
+      }
 
-      // Decode base64 and save to file
-      const buffer = Buffer.from(contentBytes, 'base64');
-      fs.writeFileSync(outputPath, buffer);
-
-      const sizeKB = (buffer.length / 1024).toFixed(1);
+      const sizeKB = (sizeBytes / 1024).toFixed(1);
 
       return {
         content: [
           {
             type: 'text',
-            text: `Successfully downloaded attachment:\n\nFilename: ${filename}\nType: ${contentType}\nSize: ${sizeKB} KB\nSaved to: ${outputPath}`,
+            text: `Downloaded attachment:\n\nFilename: ${filename}\nType: ${contentType}\nSize: ${sizeKB} KB`,
+          },
+          {
+            type: 'resource',
+            resource: {
+              uri: `attachment://${messageId}/${attachmentId}/${encodeURIComponent(filename)}`,
+              mimeType: contentType,
+              blob: contentBytes,
+            },
           },
         ],
       };
@@ -328,7 +338,7 @@ async function handleGetAttachmentContent(args) {
         content: [
           {
             type: 'text',
-            text: `Attachment: ${filename}\nType: ${contentType}\nSize: ${sizeKB} KB\n\nThis is a binary file. Use 'download-attachment' to save it to disk.`,
+            text: `Attachment: ${filename}\nType: ${contentType}\nSize: ${sizeKB} KB\n\nThis is a binary file. Use action='download' to retrieve its content.`,
           },
         ],
       };
