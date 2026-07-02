@@ -14,6 +14,62 @@ function simulateGraphAPIResponse(method, path, _data, _queryParams) {
   console.log(`Simulating response for: ${method} ${path}`);
 
   if (method === 'GET') {
+    if (path.includes('/attachments')) {
+      const attachmentId = (path.split('/attachments')[1] || '')
+        .replace(/^\//, '')
+        .split('?')[0];
+
+      if (attachmentId === 'att-binary') {
+        // Single binary attachment — exercises the embedded-resource/blob path
+        return {
+          '@odata.type': '#microsoft.graph.fileAttachment',
+          id: attachmentId,
+          name: 'Contrato.docx',
+          contentType:
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          size: 20,
+          isInline: false,
+          contentBytes: Buffer.from('simulated docx bytes').toString(
+            'base64'
+          ),
+        };
+      }
+      if (attachmentId) {
+        // Single text attachment — exercises the inline-text view path
+        const text = 'Hello from a simulated text attachment.';
+        return {
+          '@odata.type': '#microsoft.graph.fileAttachment',
+          id: attachmentId,
+          name: 'notes.txt',
+          contentType: 'text/plain',
+          size: text.length,
+          isInline: false,
+          contentBytes: Buffer.from(text).toString('base64'),
+        };
+      }
+
+      // Attachment list for a message
+      return {
+        value: [
+          {
+            id: 'att-text',
+            name: 'notes.txt',
+            contentType: 'text/plain',
+            size: 40,
+            isInline: false,
+          },
+          {
+            id: 'att-binary',
+            name: 'Contrato.docx',
+            contentType:
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            size: 20,
+            isInline: false,
+          },
+        ],
+      };
+    }
+
     if (path.includes('messages') && !path.includes('sendMail')) {
       // Simulate a successful email list/search response
       if (path.includes('/messages/')) {
